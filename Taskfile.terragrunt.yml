@@ -499,7 +499,7 @@ tasks:
 
   terragrunt:build:_flavor:
     internal: true
-    desc: Internal helper to build the tf variant for a flavor (OpenTofu builds disabled)
+    desc: Internal helper to build both tf and ot variants for a flavor
     requires:
       vars: [FLAVOR]
     cmds:
@@ -507,6 +507,11 @@ tasks:
         vars:
           FLAVOR: '{{.FLAVOR}}'
           TOOL: tf
+          PUSH: '{{default "false" .PUSH}}'
+      - task: terragrunt:build:_variant
+        vars:
+          FLAVOR: '{{.FLAVOR}}'
+          TOOL: ot
           PUSH: '{{default "false" .PUSH}}'
 
   terragrunt:build:all:

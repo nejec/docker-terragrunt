@@ -81,7 +81,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        flavor: [aws]
+        flavor: [slim, plain, aws-azure-gcp]
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -159,6 +159,7 @@ jobs:
           }
           sleep 5
           pull_with_retry "${GHCR_IMAGE}:${{ matrix.flavor }}-tf-${TF_VERSION}-tg-${TG_VERSION}${{ env.VERSION_SUFFIX }}"
+          pull_with_retry "${GHCR_IMAGE}:${{ matrix.flavor }}-ot-${OT_VERSION}-tg-${TG_VERSION}${{ env.VERSION_SUFFIX }}"
 
       - name: Cont.Struc.Test - ${{ matrix.flavor }} (TF image)
         uses: devops-infra/action-container-structure-test@v1
@@ -167,9 +168,23 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/docker-terragrunt:${{ matrix.flavor }}-tf-${{ env.TF_VERSION }}-tg-${{ env.TG_VERSION }}${{ env.VERSION_SUFFIX }}
           config: tests/${{ matrix.flavor }}.yml
 
+      - name: Cont.Struc.Test - ${{ matrix.flavor }} (OT image)
+        uses: devops-infra/action-container-structure-test@v1
+        with:
+          image: >-
+            ghcr.io/${{ github.repository_owner }}/docker-terragrunt:${{ matrix.flavor }}-ot-${{ env.OT_VERSION }}-tg-${{ env.TG_VERSION }}${{ env.VERSION_SUFFIX }}
+          config: tests/${{ matrix.flavor }}.yml
+
       - name: Cont.Struc.Test - Terraform
         uses: devops-infra/action-container-structure-test@v1
         with:
           image: >-
             ghcr.io/${{ github.repository_owner }}/docker-terragrunt:${{ matrix.flavor }}-tf-${{ env.TF_VERSION }}-tg-${{ env.TG_VERSION }}${{ env.VERSION_SUFFIX }}
           config: tests/tf.yml
+
+      - name: Cont.Struc.Test - OpenTofu
+        uses: devops-infra/action-container-structure-test@v1
+        with:
+          image: >-
+            ghcr.io/${{ github.repository_owner }}/docker-terragrunt:${{ matrix.flavor }}-ot-${{ env.OT_VERSION }}-tg-${{ env.TG_VERSION }}${{ env.VERSION_SUFFIX }}
+          config: tests/ot.yml

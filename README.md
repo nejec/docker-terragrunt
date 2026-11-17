@@ -1,6 +1,6 @@
 # Dockerized IaC framework for Terraform, OpenTofu and Terragrunt
 
-> **Note:** This repository is a fork of [devops-infra/docker-terragrunt](https://github.com/devops-infra/docker-terragrunt), created and maintained by [ChristophShyper](https://github.com/ChristophShyper). This fork builds only the `aws` flavor with Terraform and publishes it to this repository owner's GitHub Container Registry (`ghcr.io`).
+> **Note:** This repository is a fork of [devops-infra/docker-terragrunt](https://github.com/devops-infra/docker-terragrunt), created and maintained by [ChristophShyper](https://github.com/ChristophShyper). This fork builds all flavors (Terraform and OpenTofu) and publishes them to this repository owner's GitHub Container Registry (`ghcr.io`).
 >
 > **Kudos to [ChristophShyper](https://github.com/ChristophShyper)** for building and maintaining this project: well-designed multi-arch images, automated dependency updates and thorough tests that made this fork possible. If you find it useful, please star the [original repository](https://github.com/devops-infra/docker-terragrunt).
 

@@ -89,7 +89,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        flavor: [aws]
+        flavor: [slim, plain, aws, azure, aws-azure, gcp, aws-gcp, azure-gcp, aws-azure-gcp]
     steps:
       - name: Checkout dependency branch
         uses: actions/checkout@v7
@@ -136,11 +136,14 @@ jobs:
 
       - name: Verify published images
         run: |
-          image="ghcr.io/${{ github.repository_owner }}/docker-terragrunt:${{ matrix.flavor }}-tf-${TF_VERSION}-tg-${TG_VERSION}${VERSION_SUFFIX}"
-          for attempt in 1 2 3 4 5; do
-            docker pull "$image" && break
-            [ "$attempt" -lt 5 ] || exit 1
-            sleep 5
+          for image in \
+            "ghcr.io/${{ github.repository_owner }}/docker-terragrunt:${{ matrix.flavor }}-tf-${TF_VERSION}-tg-${TG_VERSION}${VERSION_SUFFIX}" \
+            "ghcr.io/${{ github.repository_owner }}/docker-terragrunt:${{ matrix.flavor }}-ot-${OT_VERSION}-tg-${TG_VERSION}${VERSION_SUFFIX}"; do
+            for attempt in 1 2 3 4 5; do
+              docker pull "$image" && break
+              [ "$attempt" -lt 5 ] || exit 1
+              sleep 5
+            done
           done
 
       - name: Test Terraform image
@@ -151,6 +154,15 @@ jobs:
           config: |
             tests/${{ matrix.flavor }}.yml
             tests/tf.yml
+
+      - name: Test OpenTofu image
+        uses: devops-infra/action-container-structure-test@v1
+        with:
+          image: >-
+            ghcr.io/${{ github.repository_owner }}/docker-terragrunt:${{ matrix.flavor }}-ot-${{ env.OT_VERSION }}-tg-${{ env.TG_VERSION }}${{ env.VERSION_SUFFIX }}
+          config: |
+            tests/${{ matrix.flavor }}.yml
+            tests/ot.yml
 
   report:
     name: Report and create pull request
@@ -185,7 +197,7 @@ jobs:
               ...context.repo, run_id: context.runId, per_page: 100
             })
             const jobs = new Map(data.jobs.map(job => [job.name, job]))
-            const checks = ['Lint', 'aws']
+            const checks = ['Lint', 'slim', 'plain', 'aws', 'azure', 'aws-azure', 'gcp', 'aws-gcp', 'azure-gcp', 'aws-azure-gcp']
             const lines = checks.map(name => {
               const job = jobs.get(name === 'Lint' ? name : `Build and test (${name})`)
               const passed = job?.conclusion === 'success'
