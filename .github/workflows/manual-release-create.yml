@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Release version (e.g., tf-1.2.3-ot-1.2.3-tg-1.2.3)
+        description: Release version (e.g., tf-1.2.3-ot-1.2.3-tg-1.2.3); empty = derive from Dockerfile
         required: false
         type: string
       build-and-push-only:
@@ -60,8 +60,8 @@ jobs:
         run: |
           VERSION="${{ github.event.inputs.version }}"
           if [ -z "$VERSION" ]; then
-            echo "❌ Version is required when build-and-push-only is false"
-            exit 1
+            VERSION="$(task version:get)"
+            echo "ℹ️ No version input, using Dockerfile version: $VERSION"
           fi
           if [[ ! "$VERSION" =~ ^tf-[0-9]+\.[0-9]+\.[0-9]+-ot-[0-9]+\.[0-9]+\.[0-9]+-tg-[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "❌ Invalid version format. Use format: tf-1.2.3-ot-1.2.3-tg-1.2.3"
