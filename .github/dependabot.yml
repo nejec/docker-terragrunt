@@ -9,7 +9,7 @@ updates:
       time: "05:00"
       timezone: "UTC"
     assignees:
-      - ChristophShyper
+      - nejec
     groups:
       gha-all:
         patterns:
@@ -24,7 +24,7 @@ updates:
       time: "05:00"
       timezone: "UTC"
     assignees:
-      - ChristophShyper
+      - nejec
     groups:
       docker-base-images:
         patterns:
@@ -39,7 +39,7 @@ updates:
       time: "05:00"
       timezone: "UTC"
     assignees:
-      - ChristophShyper
+      - nejec
     groups:
       pip-common-patch-minor:
         patterns:
@@ -62,7 +62,7 @@ updates:
       time: "05:00"
       timezone: "UTC"
     assignees:
-      - ChristophShyper
+      - nejec
     groups:
       pip-aws-patch-minor:
         patterns:

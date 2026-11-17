@@ -82,7 +82,8 @@ vars:
     Docker image with Terragrunt v{{.EFFECTIVE_TG_VERSION}}, Terraform v{{.EFFECTIVE_TF_VERSION}}
     or OpenTofu v{{.EFFECTIVE_OT_VERSION}}, together with all needed components
     to easily manage cloud infrastructure.
-  LABEL_REPO_URL: https://github.com/devops-infra/docker-terragrunt
+  LABEL_REPO_URL:
+    sh: echo "https://github.com/${GITHUB_REPOSITORY:-devops-infra/docker-terragrunt}"
   LABEL_HOMEPAGE: https://shyper.pro
   LABEL_VENDOR: DevOps-Infra
   EFFECTIVE_SUFFIX:
@@ -498,7 +499,7 @@ tasks:
 
   terragrunt:build:_flavor:
     internal: true
-    desc: Internal helper to build both tf and ot variants for a flavor
+    desc: Internal helper to build the tf variant for a flavor (OpenTofu builds disabled)
     requires:
       vars: [FLAVOR]
     cmds:
@@ -506,11 +507,6 @@ tasks:
         vars:
           FLAVOR: '{{.FLAVOR}}'
           TOOL: tf
-          PUSH: '{{default "false" .PUSH}}'
-      - task: terragrunt:build:_variant
-        vars:
-          FLAVOR: '{{.FLAVOR}}'
-          TOOL: ot
           PUSH: '{{default "false" .PUSH}}'
 
   terragrunt:build:all:

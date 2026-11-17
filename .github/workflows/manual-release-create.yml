@@ -83,7 +83,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        flavor: [slim, plain, aws, azure, gcp, aws-azure, aws-gcp, azure-gcp, aws-azure-gcp]
+        flavor: [aws]
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -109,8 +109,9 @@ jobs:
         env:
           BUILDX_NO_DEFAULT_ATTESTATIONS: 1
           DOCKER_BUILDKIT: 1
-          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_USERNAME: ${{ github.actor }}
+          GITHUB_ORG_NAME: ${{ github.repository_owner }}
           TERM: xterm-256color
         run: |
           VERSION="${{ needs.prepare.outputs.version }}"
@@ -138,8 +139,7 @@ jobs:
             echo "AZ_VERSION=${AZ_VERSION}"
           } >> "$GITHUB_ENV"
           FLAVOR="${{ matrix.flavor }}"
-          GHCR_IMAGE="ghcr.io/devops-infra/docker-terragrunt"
-          DOCKER_IMAGE="devopsinfra/docker-terragrunt"
+          GHCR_IMAGE="ghcr.io/${GITHUB_ORG_NAME}/docker-terragrunt"
           docker buildx create --use || true
           task login
           task push-${{ matrix.flavor }} VERSION_OVERRIDE="${VERSION}"
@@ -162,33 +162,18 @@ jobs:
           }
           sleep 5
           pull_with_retry "${GHCR_IMAGE}:${FLAVOR}-tf-${TF_VERSION}-tg-${TG_VERSION}"
-          pull_with_retry "${GHCR_IMAGE}:${FLAVOR}-ot-${OT_VERSION}-tg-${TG_VERSION}"
-          pull_with_retry "${DOCKER_IMAGE}:${FLAVOR}-tf-${TF_VERSION}-tg-${TG_VERSION}"
-          pull_with_retry "${DOCKER_IMAGE}:${FLAVOR}-ot-${OT_VERSION}-tg-${TG_VERSION}"
 
       - name: Cont.Struc.Test - ${{ matrix.flavor }} (TF image)
         uses: devops-infra/action-container-structure-test@v1
         with:
-          image: devopsinfra/docker-terragrunt:${{ matrix.flavor }}-tf-${{ env.TF_VERSION }}-tg-${{ env.TG_VERSION }}
-          config: tests/${{ matrix.flavor }}.yml
-
-      - name: Cont.Struc.Test - ${{ matrix.flavor }} (OT image)
-        uses: devops-infra/action-container-structure-test@v1
-        with:
-          image: devopsinfra/docker-terragrunt:${{ matrix.flavor }}-ot-${{ env.OT_VERSION }}-tg-${{ env.TG_VERSION }}
+          image: ghcr.io/${{ github.repository_owner }}/docker-terragrunt:${{ matrix.flavor }}-tf-${{ env.TF_VERSION }}-tg-${{ env.TG_VERSION }}
           config: tests/${{ matrix.flavor }}.yml
 
       - name: Cont.Struc.Test - Terraform
         uses: devops-infra/action-container-structure-test@v1
         with:
-          image: devopsinfra/docker-terragrunt:${{ matrix.flavor }}-tf-${{ env.TF_VERSION }}-tg-${{ env.TG_VERSION }}
+          image: ghcr.io/${{ github.repository_owner }}/docker-terragrunt:${{ matrix.flavor }}-tf-${{ env.TF_VERSION }}-tg-${{ env.TG_VERSION }}
           config: tests/tf.yml
-
-      - name: Cont.Struc.Test - OpenTofu
-        uses: devops-infra/action-container-structure-test@v1
-        with:
-          image: devopsinfra/docker-terragrunt:${{ matrix.flavor }}-ot-${{ env.OT_VERSION }}-tg-${{ env.TG_VERSION }}
-          config: tests/ot.yml
 
   build-and-push-only:
     name: Build & push only
@@ -198,7 +183,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        flavor: [slim, plain, aws, azure, gcp, aws-azure, aws-gcp, azure-gcp, aws-azure-gcp]
+        flavor: [aws]
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -233,8 +218,9 @@ jobs:
         env:
           BUILDX_NO_DEFAULT_ATTESTATIONS: 1
           DOCKER_BUILDKIT: 1
-          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_USERNAME: ${{ github.actor }}
+          GITHUB_ORG_NAME: ${{ github.repository_owner }}
           TERM: xterm-256color
         run: |
           VERSION="$(task version:get)"
@@ -262,8 +248,7 @@ jobs:
             echo "AZ_VERSION=${AZ_VERSION}"
           } >> "$GITHUB_ENV"
           FLAVOR="${{ matrix.flavor }}"
-          GHCR_IMAGE="ghcr.io/devops-infra/docker-terragrunt"
-          DOCKER_IMAGE="devopsinfra/docker-terragrunt"
+          GHCR_IMAGE="ghcr.io/${GITHUB_ORG_NAME}/docker-terragrunt"
           docker buildx create --use || true
           task login
           task push-${{ matrix.flavor }} VERSION_OVERRIDE="${VERSION}"
@@ -286,33 +271,18 @@ jobs:
           }
           sleep 5
           pull_with_retry "${GHCR_IMAGE}:${FLAVOR}-tf-${TF_VERSION}-tg-${TG_VERSION}"
-          pull_with_retry "${GHCR_IMAGE}:${FLAVOR}-ot-${OT_VERSION}-tg-${TG_VERSION}"
-          pull_with_retry "${DOCKER_IMAGE}:${FLAVOR}-tf-${TF_VERSION}-tg-${TG_VERSION}"
-          pull_with_retry "${DOCKER_IMAGE}:${FLAVOR}-ot-${OT_VERSION}-tg-${TG_VERSION}"
 
       - name: Cont.Struc.Test - ${{ matrix.flavor }} (TF image)
         uses: devops-infra/action-container-structure-test@v1
         with:
-          image: devopsinfra/docker-terragrunt:${{ matrix.flavor }}-tf-${{ env.TF_VERSION }}-tg-${{ env.TG_VERSION }}
-          config: tests/${{ matrix.flavor }}.yml
-
-      - name: Cont.Struc.Test - ${{ matrix.flavor }} (OT image)
-        uses: devops-infra/action-container-structure-test@v1
-        with:
-          image: devopsinfra/docker-terragrunt:${{ matrix.flavor }}-ot-${{ env.OT_VERSION }}-tg-${{ env.TG_VERSION }}
+          image: ghcr.io/${{ github.repository_owner }}/docker-terragrunt:${{ matrix.flavor }}-tf-${{ env.TF_VERSION }}-tg-${{ env.TG_VERSION }}
           config: tests/${{ matrix.flavor }}.yml
 
       - name: Cont.Struc.Test - Terraform
         uses: devops-infra/action-container-structure-test@v1
         with:
-          image: devopsinfra/docker-terragrunt:${{ matrix.flavor }}-tf-${{ env.TF_VERSION }}-tg-${{ env.TG_VERSION }}
+          image: ghcr.io/${{ github.repository_owner }}/docker-terragrunt:${{ matrix.flavor }}-tf-${{ env.TF_VERSION }}-tg-${{ env.TG_VERSION }}
           config: tests/tf.yml
-
-      - name: Cont.Struc.Test - OpenTofu
-        uses: devops-infra/action-container-structure-test@v1
-        with:
-          image: devopsinfra/docker-terragrunt:${{ matrix.flavor }}-ot-${{ env.OT_VERSION }}-tg-${{ env.TG_VERSION }}
-          config: tests/ot.yml
 
   release:
     name: Release
@@ -349,11 +319,3 @@ jobs:
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Docker Hub Description
-        uses: peter-evans/dockerhub-description@v5
-        with:
-          username: ${{ vars.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
-          repository: ${{ vars.DOCKER_ORG_NAME }}/${{ github.event.repository.name }}
-          short-description: ${{ github.event.repository.description }}

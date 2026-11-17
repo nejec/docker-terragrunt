@@ -50,7 +50,7 @@ jobs:
   lint:
     name: Lint
     if: >-
-      (github.event_name == 'push' && github.actor == 'ChristophShyper') ||
+      (github.event_name == 'push' && github.actor == github.repository_owner) ||
       (github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]')
     runs-on: ubuntu-24.04-arm
     steps:
@@ -71,7 +71,7 @@ jobs:
   build-and-push:
     name: Build and push
     if: >-
-      (github.event_name == 'push' && github.actor == 'ChristophShyper') ||
+      (github.event_name == 'push' && github.actor == github.repository_owner) ||
       (github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]')
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 90
@@ -81,7 +81,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        flavor: [slim, plain, aws-azure-gcp]
+        flavor: [aws]
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -107,8 +107,9 @@ jobs:
         env:
           BUILDX_NO_DEFAULT_ATTESTATIONS: 1
           DOCKER_BUILDKIT: 1
-          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_USERNAME: ${{ github.actor }}
+          GITHUB_ORG_NAME: ${{ github.repository_owner }}
           TERM: xterm-256color
         run: |
           VERSION="$(task version:get)"
@@ -138,8 +139,7 @@ jobs:
           docker buildx create --use || true
           task login
           task push-${{ matrix.flavor }}
-          GHCR_IMAGE="ghcr.io/devops-infra/docker-terragrunt"
-          DOCKER_IMAGE="devopsinfra/docker-terragrunt"
+          GHCR_IMAGE="ghcr.io/${GITHUB_ORG_NAME}/docker-terragrunt"
           pull_with_retry() {
             image="$1"
             max_attempts="${2:-5}"
@@ -159,34 +159,17 @@ jobs:
           }
           sleep 5
           pull_with_retry "${GHCR_IMAGE}:${{ matrix.flavor }}-tf-${TF_VERSION}-tg-${TG_VERSION}${{ env.VERSION_SUFFIX }}"
-          pull_with_retry "${GHCR_IMAGE}:${{ matrix.flavor }}-ot-${OT_VERSION}-tg-${TG_VERSION}${{ env.VERSION_SUFFIX }}"
-          pull_with_retry "${DOCKER_IMAGE}:${{ matrix.flavor }}-tf-${TF_VERSION}-tg-${TG_VERSION}${{ env.VERSION_SUFFIX }}"
-          pull_with_retry "${DOCKER_IMAGE}:${{ matrix.flavor }}-ot-${OT_VERSION}-tg-${TG_VERSION}${{ env.VERSION_SUFFIX }}"
 
       - name: Cont.Struc.Test - ${{ matrix.flavor }} (TF image)
         uses: devops-infra/action-container-structure-test@v1
         with:
           image: >-
-            devopsinfra/docker-terragrunt:${{ matrix.flavor }}-tf-${{ env.TF_VERSION }}-tg-${{ env.TG_VERSION }}${{ env.VERSION_SUFFIX }}
-          config: tests/${{ matrix.flavor }}.yml
-
-      - name: Cont.Struc.Test - ${{ matrix.flavor }} (OT image)
-        uses: devops-infra/action-container-structure-test@v1
-        with:
-          image: >-
-            devopsinfra/docker-terragrunt:${{ matrix.flavor }}-ot-${{ env.OT_VERSION }}-tg-${{ env.TG_VERSION }}${{ env.VERSION_SUFFIX }}
+            ghcr.io/${{ github.repository_owner }}/docker-terragrunt:${{ matrix.flavor }}-tf-${{ env.TF_VERSION }}-tg-${{ env.TG_VERSION }}${{ env.VERSION_SUFFIX }}
           config: tests/${{ matrix.flavor }}.yml
 
       - name: Cont.Struc.Test - Terraform
         uses: devops-infra/action-container-structure-test@v1
         with:
           image: >-
-            devopsinfra/docker-terragrunt:${{ matrix.flavor }}-tf-${{ env.TF_VERSION }}-tg-${{ env.TG_VERSION }}${{ env.VERSION_SUFFIX }}
+            ghcr.io/${{ github.repository_owner }}/docker-terragrunt:${{ matrix.flavor }}-tf-${{ env.TF_VERSION }}-tg-${{ env.TG_VERSION }}${{ env.VERSION_SUFFIX }}
           config: tests/tf.yml
-
-      - name: Cont.Struc.Test - OpenTofu
-        uses: devops-infra/action-container-structure-test@v1
-        with:
-          image: >-
-            devopsinfra/docker-terragrunt:${{ matrix.flavor }}-ot-${{ env.OT_VERSION }}-tg-${{ env.TG_VERSION }}${{ env.VERSION_SUFFIX }}
-          config: tests/ot.yml
